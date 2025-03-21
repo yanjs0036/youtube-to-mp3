@@ -4,7 +4,6 @@ from yt_dlp import YoutubeDL
 
 app = Flask(__name__)
 
-# 網頁介面
 INDEX_HTML = '''
 <!DOCTYPE html>
 <html>
@@ -44,20 +43,18 @@ def download():
     try:
         ydl_opts = {
             'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
             'outtmpl': 'downloads/%(title)s.%(ext)s',
             'quiet': True,
+            'merge_output_format': 'mp3'
         }
         if not os.path.exists('downloads'):
             os.makedirs('downloads')
 
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info).replace('.webm', '.mp3').replace('.m4a', '.mp3')
+            filename = ydl.prepare_filename(info)
+            if not filename.endswith('.mp3'):
+                filename = filename.rsplit('.', 1)[0] + '.mp3'
 
         return send_file(filename, as_attachment=True)
 
